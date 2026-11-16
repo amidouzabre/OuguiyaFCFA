@@ -4,6 +4,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GainController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\TransactionExportController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('clients/{client}/statement', [ClientController::class, 'statement'])->name('clients.statement');
 
     // Transactions
+    Route::get('transactions/export', TransactionExportController::class)->name('transactions.export');
     Route::resource('transactions', TransactionController::class)->except(['create', 'show', 'edit']);
     Route::get('transactions/{transaction}/receipt', [TransactionController::class, 'receipt'])->name('transactions.receipt');
     Route::get('clients/{client}/purchase-transactions', [TransactionController::class, 'availablePurchases'])

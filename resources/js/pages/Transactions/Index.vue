@@ -6,6 +6,7 @@ import {
     ArrowUpDown,
     ArrowUpRight,
     Calendar,
+    Download,
     Filter,
     Pencil,
     Plus,
@@ -118,13 +119,21 @@ watch(searchQuery, () => {
                 </p>
             </div>
 
-            <Button
-                @click="openCreateTransaction"
-                class="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm text-xs font-semibold self-start sm:self-auto"
-            >
-                <Plus class="size-4" />
-                Nouvelle Opération
-            </Button>
+            <div class="flex flex-wrap gap-2 self-start sm:self-auto">
+                <a href="/transactions/export">
+                    <Button variant="outline" class="gap-1.5 text-xs font-semibold">
+                        <Download class="size-4" />
+                        Exporter Excel
+                    </Button>
+                </a>
+                <Button
+                    @click="openCreateTransaction"
+                    class="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm text-xs font-semibold"
+                >
+                    <Plus class="size-4" />
+                    Nouvelle Opération
+                </Button>
+            </div>
         </div>
 
         <!-- Filters Section -->
