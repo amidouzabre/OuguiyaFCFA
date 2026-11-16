@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { formatFcfa, formatOuguiya } from '@/lib/formatters';
+import { getWhatsAppUrl as createWhatsAppUrl } from '@/lib/whatsapp';
 import type { Client } from '@/types';
 
 const props = defineProps<{
@@ -78,7 +79,11 @@ function openAddTransaction(clientId: number) {
 }
 
 function deleteClient(client: Client) {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le client "${client.name}" et toutes ses opérations ? Cette action est irréversible.`)) {
+    if (
+        confirm(
+            `Êtes-vous sûr de vouloir supprimer le client "${client.name}" et toutes ses opérations ? Cette action est irréversible.`,
+        )
+    ) {
         router.delete(`/clients/${client.id}`);
     }
 }
@@ -88,9 +93,10 @@ function applyFilters() {
         '/clients',
         {
             search: searchQuery.value || undefined,
-            filter: activeFilter.value !== 'all' ? activeFilter.value : undefined,
+            filter:
+                activeFilter.value !== 'all' ? activeFilter.value : undefined,
         },
-        { preserveState: true, replace: true }
+        { preserveState: true, replace: true },
     );
 }
 
@@ -110,35 +116,39 @@ function setFilter(filter: string) {
 
 function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
     if (!phone) return '#';
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const message = encodeURIComponent(
-        `Bonjour ${clientName}, voici le récapitulatif de votre compte. Votre solde actuel est de ${amount}. Cordialement.`
-    );
-    return `https://wa.me/${cleanPhone}?text=${message}`;
+    const message = `Bonjour ${clientName}, voici le récapitulatif de votre compte. Votre solde actuel est de ${amount}. Cordialement.`;
+    return createWhatsAppUrl(phone, message);
 }
 </script>
 
 <template>
     <Head title="Comptes Clients - OuguiyaCFA" />
 
-    <div class="flex flex-1 flex-col gap-6 p-4 sm:p-6 max-w-7xl mx-auto w-full">
+    <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 sm:p-6">
         <!-- Top header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5">
+        <div
+            class="flex flex-col justify-between gap-4 border-b pb-5 sm:flex-row sm:items-center"
+        >
             <div>
-                <h1 class="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
+                <h1
+                    class="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-foreground"
+                >
                     Comptes Clients
-                    <span class="rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2.5 py-0.5 text-xs font-semibold">
+                    <span
+                        class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                    >
                         {{ clients.length }} affichés
                     </span>
                 </h1>
-                <p class="text-sm text-muted-foreground mt-0.5">
-                    Gérez vos clients, consultez leurs relevés de compte et suivez leurs créances en temps réel.
+                <p class="mt-0.5 text-sm text-muted-foreground">
+                    Gérez vos clients, consultez leurs relevés de compte et
+                    suivez leurs créances en temps réel.
                 </p>
             </div>
 
             <Button
                 @click="openCreateClient"
-                class="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm text-xs font-semibold self-start sm:self-auto"
+                class="gap-1.5 self-start bg-emerald-600 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 sm:self-auto"
             >
                 <UserPlus class="size-4" />
                 Nouveau Client
@@ -146,37 +156,67 @@ function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
         </div>
 
         <!-- 4 Quick Stats Cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card class="border-border/70 shadow-sm p-4">
-                <div class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Clients</div>
-                <div class="text-2xl font-black text-foreground mt-1">{{ stats.total_clients }}</div>
+        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <Card class="border-border/70 p-4 shadow-sm">
+                <div
+                    class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+                >
+                    Total Clients
+                </div>
+                <div class="mt-1 text-2xl font-black text-foreground">
+                    {{ stats.total_clients }}
+                </div>
             </Card>
 
-            <Card class="border-border/70 shadow-sm p-4">
-                <div class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Débiteurs FCFA</div>
-                <div class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ stats.total_debiteurs_fcfa }}</div>
+            <Card class="border-border/70 p-4 shadow-sm">
+                <div
+                    class="text-xs font-semibold tracking-wider text-amber-600 uppercase dark:text-amber-400"
+                >
+                    Débiteurs FCFA
+                </div>
+                <div
+                    class="mt-1 text-2xl font-black text-amber-600 dark:text-amber-400"
+                >
+                    {{ stats.total_debiteurs_fcfa }}
+                </div>
             </Card>
 
-            <Card class="border-border/70 shadow-sm p-4">
-                <div class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Créances Totales FCFA</div>
-                <div class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+            <Card class="border-border/70 p-4 shadow-sm">
+                <div
+                    class="text-xs font-semibold tracking-wider text-amber-600 uppercase dark:text-amber-400"
+                >
+                    Créances Totales FCFA
+                </div>
+                <div
+                    class="mt-1 text-xl font-black text-amber-600 sm:text-2xl dark:text-amber-400"
+                >
                     {{ formatFcfa(stats.somme_creances_fcfa) }}
                 </div>
             </Card>
 
-            <Card class="border-border/70 shadow-sm p-4">
-                <div class="text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Créances Totales MRU</div>
-                <div class="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">
+            <Card class="border-border/70 p-4 shadow-sm">
+                <div
+                    class="text-xs font-semibold tracking-wider text-sky-600 uppercase dark:text-sky-400"
+                >
+                    Créances Totales MRU
+                </div>
+                <div
+                    class="mt-1 text-xl font-black text-sky-600 sm:text-2xl dark:text-sky-400"
+                >
                     {{ formatOuguiya(stats.somme_creances_mru) }}
                 </div>
             </Card>
         </div>
 
         <!-- Search & Filter Bar -->
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div
+            class="flex flex-col items-stretch justify-between gap-3 md:flex-row md:items-center"
+        >
             <!-- Search -->
-            <div class="relative flex-1 max-w-md">
-                <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <div class="relative max-w-md flex-1">
+                <Search
+                    class="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                />
                 <Input
                     type="text"
                     v-model="searchQuery"
@@ -186,14 +226,16 @@ function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
             </div>
 
             <!-- Filter tabs -->
-            <div class="flex flex-wrap items-center gap-1.5 p-1 bg-muted/60 rounded-xl text-xs font-medium border border-border/50">
+            <div
+                class="flex flex-wrap items-center gap-1.5 rounded-xl border border-border/50 bg-muted/60 p-1 text-xs font-medium"
+            >
                 <button
                     @click="setFilter('all')"
                     :class="[
-                        'px-3 py-1.5 rounded-lg transition-all',
+                        'rounded-lg px-3 py-1.5 transition-all',
                         activeFilter === 'all'
-                            ? 'bg-background text-foreground font-bold shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground'
+                            ? 'bg-background font-bold text-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground',
                     ]"
                 >
                     Tous ({{ stats.total_clients }})
@@ -201,10 +243,10 @@ function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
                 <button
                     @click="setFilter('debiteurs_fcfa')"
                     :class="[
-                        'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1',
+                        'flex items-center gap-1 rounded-lg px-3 py-1.5 transition-all',
                         activeFilter === 'debiteurs_fcfa'
-                            ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-bold shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground'
+                            ? 'bg-amber-100 font-bold text-amber-900 shadow-sm dark:bg-amber-950 dark:text-amber-300'
+                            : 'text-muted-foreground hover:text-foreground',
                     ]"
                 >
                     <span class="size-2 rounded-full bg-amber-500"></span>
@@ -213,10 +255,10 @@ function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
                 <button
                     @click="setFilter('debiteurs_mru')"
                     :class="[
-                        'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1',
+                        'flex items-center gap-1 rounded-lg px-3 py-1.5 transition-all',
                         activeFilter === 'debiteurs_mru'
-                            ? 'bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-300 font-bold shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground'
+                            ? 'bg-sky-100 font-bold text-sky-900 shadow-sm dark:bg-sky-950 dark:text-sky-300'
+                            : 'text-muted-foreground hover:text-foreground',
                     ]"
                 >
                     <span class="size-2 rounded-full bg-sky-500"></span>
@@ -225,10 +267,10 @@ function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
                 <button
                     @click="setFilter('soldes')"
                     :class="[
-                        'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1',
+                        'flex items-center gap-1 rounded-lg px-3 py-1.5 transition-all',
                         activeFilter === 'soldes'
-                            ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-300 font-bold shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground'
+                            ? 'bg-emerald-100 font-bold text-emerald-900 shadow-sm dark:bg-emerald-950 dark:text-emerald-300'
+                            : 'text-muted-foreground hover:text-foreground',
                     ]"
                 >
                     <span class="size-2 rounded-full bg-emerald-500"></span>
@@ -238,15 +280,25 @@ function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
         </div>
 
         <!-- Clients Table -->
-        <Card class="border-border/70 shadow-sm overflow-hidden">
+        <Card class="overflow-hidden border-border/70 shadow-sm">
             <CardContent class="p-0">
-                <div v-if="clients.length === 0" class="flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
-                    <Users class="size-12 text-muted-foreground/50 mb-3" />
-                    <p class="font-bold text-foreground text-base">Aucun client trouvé</p>
-                    <p class="text-xs text-muted-foreground mt-1 max-w-sm">
+                <div
+                    v-if="clients.length === 0"
+                    class="flex flex-col items-center justify-center p-12 text-center text-muted-foreground"
+                >
+                    <Users class="mb-3 size-12 text-muted-foreground/50" />
+                    <p class="text-base font-bold text-foreground">
+                        Aucun client trouvé
+                    </p>
+                    <p class="mt-1 max-w-sm text-xs text-muted-foreground">
                         Aucun compte ne correspond à votre recherche ou filtre.
                     </p>
-                    <Button variant="outline" size="sm" class="mt-4 gap-1.5" @click="openCreateClient">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        class="mt-4 gap-1.5"
+                        @click="openCreateClient"
+                    >
                         <UserPlus class="size-4" />
                         Créer un client
                     </Button>
@@ -254,76 +306,113 @@ function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
 
                 <div v-else class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-muted/50 text-muted-foreground font-semibold border-b uppercase tracking-wider text-[11px]">
+                        <thead
+                            class="border-b bg-muted/50 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
+                        >
                             <tr>
                                 <th class="p-3 pl-4">Client</th>
                                 <th class="p-3">Téléphone</th>
                                 <th class="p-3">Localisation</th>
                                 <th class="p-3 text-center">Opérations</th>
                                 <th class="p-3 text-right">Solde FCFA (XOF)</th>
-                                <th class="p-3 text-right">Solde Ouguiya (MRU)</th>
-                                <th class="p-3 text-center pr-4">Actions</th>
+                                <th class="p-3 text-right">
+                                    Solde Ouguiya (MRU)
+                                </th>
+                                <th class="p-3 pr-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border/60">
                             <tr
                                 v-for="c in clients"
                                 :key="c.id"
-                                class="hover:bg-muted/40 transition-colors group"
+                                class="group transition-colors hover:bg-muted/40"
                             >
-                                <td class="p-3 pl-4 font-bold text-foreground whitespace-nowrap">
-                                    <Link :href="`/clients/${c.id}`" class="hover:text-emerald-600 transition-colors flex items-center gap-2">
-                                        <div class="flex size-7 items-center justify-center rounded-full bg-muted font-bold text-xs uppercase text-muted-foreground group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors">
+                                <td
+                                    class="p-3 pl-4 font-bold whitespace-nowrap text-foreground"
+                                >
+                                    <Link
+                                        :href="`/clients/${c.id}`"
+                                        class="flex items-center gap-2 transition-colors hover:text-emerald-600"
+                                    >
+                                        <div
+                                            class="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground uppercase transition-colors group-hover:bg-emerald-100 group-hover:text-emerald-700"
+                                        >
                                             {{ c.name.substring(0, 2) }}
                                         </div>
                                         <span>{{ c.name }}</span>
                                     </Link>
                                 </td>
-                                <td class="p-3 text-muted-foreground whitespace-nowrap">
+                                <td
+                                    class="p-3 whitespace-nowrap text-muted-foreground"
+                                >
                                     <div class="flex items-center gap-1.5">
                                         <span>{{ c.telephone || '-' }}</span>
                                         <a
                                             v-if="c.telephone"
-                                            :href="getWhatsAppUrl(c.telephone, c.name, formatFcfa(c.solde_fcfa))"
+                                            :href="
+                                                getWhatsAppUrl(
+                                                    c.telephone,
+                                                    c.name,
+                                                    formatFcfa(c.solde_fcfa),
+                                                )
+                                            "
                                             target="_blank"
-                                            class="inline-flex size-6 items-center justify-center rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 transition-colors"
+                                            class="inline-flex size-6 items-center justify-center rounded bg-emerald-100 text-emerald-700 transition-colors hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300"
                                             title="Contacter sur WhatsApp"
                                         >
                                             <MessageCircle class="size-3.5" />
                                         </a>
                                     </div>
                                 </td>
-                                <td class="p-3 text-muted-foreground whitespace-nowrap">
+                                <td
+                                    class="p-3 whitespace-nowrap text-muted-foreground"
+                                >
                                     {{ c.address || '-' }}
                                 </td>
                                 <td class="p-3 text-center whitespace-nowrap">
-                                    <span class="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                                    <span
+                                        class="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground"
+                                    >
                                         {{ c.transactions_count || 0 }}
                                     </span>
                                 </td>
-                                <td class="p-3 text-right font-bold whitespace-nowrap">
+                                <td
+                                    class="p-3 text-right font-bold whitespace-nowrap"
+                                >
                                     <span
                                         v-if="Number(c.solde_fcfa) > 0"
-                                        class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-black bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                        class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-black text-amber-800 dark:bg-amber-950 dark:text-amber-300"
                                     >
                                         {{ formatFcfa(c.solde_fcfa) }}
-                                        <span class="text-[9px] uppercase font-normal">(Doit)</span>
+                                        <span
+                                            class="text-[9px] font-normal uppercase"
+                                            >(Doit)</span
+                                        >
                                     </span>
                                     <span
                                         v-else-if="Number(c.solde_fcfa) < 0"
-                                        class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-black bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300"
+                                        class="inline-flex items-center gap-1 rounded-md bg-sky-100 px-2 py-0.5 text-xs font-black text-sky-800 dark:bg-sky-950 dark:text-sky-300"
                                     >
-                                        {{ formatFcfa(Math.abs(Number(c.solde_fcfa))) }}
-                                        <span class="text-[9px] uppercase font-normal">(Avoir)</span>
+                                        {{
+                                            formatFcfa(
+                                                Math.abs(Number(c.solde_fcfa)),
+                                            )
+                                        }}
+                                        <span
+                                            class="text-[9px] font-normal uppercase"
+                                            >(Avoir)</span
+                                        >
                                     </span>
                                     <span
                                         v-else
-                                        class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                                        class="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                                     >
                                         Soldé
                                     </span>
                                 </td>
-                                <td class="p-3 text-right font-bold whitespace-nowrap">
+                                <td
+                                    class="p-3 text-right font-bold whitespace-nowrap"
+                                >
                                     <span
                                         v-if="Number(c.solde_ouguiya) > 0"
                                         class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold text-sky-700 dark:text-sky-300"
@@ -334,16 +423,30 @@ function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
                                         v-else-if="Number(c.solde_ouguiya) < 0"
                                         class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold text-muted-foreground"
                                     >
-                                        -{{ formatOuguiya(Math.abs(Number(c.solde_ouguiya))) }}
+                                        -{{
+                                            formatOuguiya(
+                                                Math.abs(
+                                                    Number(c.solde_ouguiya),
+                                                ),
+                                            )
+                                        }}
                                     </span>
                                     <span v-else class="text-muted-foreground">
                                         0 MRU
                                     </span>
                                 </td>
-                                <td class="p-3 text-center pr-4 whitespace-nowrap">
-                                    <div class="flex items-center justify-center gap-1">
+                                <td
+                                    class="p-3 pr-4 text-center whitespace-nowrap"
+                                >
+                                    <div
+                                        class="flex items-center justify-center gap-1"
+                                    >
                                         <Link :href="`/clients/${c.id}`">
-                                            <Button variant="outline" size="sm" class="h-7 px-2.5 text-[11px] gap-1 font-semibold text-emerald-700 dark:text-emerald-300 border-emerald-600/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/50">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                class="h-7 gap-1 border-emerald-600/30 px-2.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/50"
+                                            >
                                                 <Eye class="size-3.5" />
                                                 Historique
                                             </Button>
@@ -386,10 +489,7 @@ function getWhatsAppUrl(phone?: string | null, clientName = '', amount = '') {
     </div>
 
     <!-- Modals -->
-    <ClientModal
-        v-model:open="isClientModalOpen"
-        :client="editingClient"
-    />
+    <ClientModal v-model:open="isClientModalOpen" :client="editingClient" />
 
     <TransactionModal
         v-model:open="isTransactionModalOpen"

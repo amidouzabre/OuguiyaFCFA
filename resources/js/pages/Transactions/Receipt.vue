@@ -9,6 +9,7 @@ import {
     formatRate,
     formatShortDate,
 } from '@/lib/formatters';
+import { getWhatsAppUrl as createWhatsAppUrl } from '@/lib/whatsapp';
 import type { Transaction } from '@/types';
 
 const props = defineProps<{
@@ -39,11 +40,7 @@ function copySummary() {
 }
 
 function getWhatsAppUrl() {
-    const phone = props.transaction.client?.telephone?.replace(/[^0-9]/g, '');
-    const encoded = encodeURIComponent(summaryText);
-    return phone
-        ? `https://wa.me/${phone}?text=${encoded}`
-        : `https://wa.me/?text=${encoded}`;
+    return createWhatsAppUrl(props.transaction.client?.telephone, summaryText);
 }
 </script>
 
