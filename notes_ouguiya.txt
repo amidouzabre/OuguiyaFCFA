@@ -1,0 +1,65 @@
+Specifications & Development Plan: Currency Exchange Management Application (Ouguiya vs. FCFA)
+1. Project Context & Objectives
+The objective is to replace an Excel file—which has become cumbersome—with a dynamic web application built using Laravel. The interface must be in French, as the application is intended for a French-speaking user. The application will manage client accounts for currency exchanges between the Ouguiya and the CFA Franc (FCFA), including tracking transactions, handling repayments, automatically calculating exchange rates, managing real-time balances, and calculating gains/profits from resales.
+2. Database Architecture (MySQL / MariaDB)
+The application must be based on the following relational tables:
+A. Clients Table
+id (PK)
+name (string): Client's full name.
+telephone (string): Phone number (e.g., 0707108448).
+address / notes (text, nullable)
+created_at, updated_at
+B. Transactions Table (The core of the system)
+Each row corresponds to a recorded operation (similar to the rows in your Excel spreadsheet).
+id (PK)
+client_id (FK to clients)
+date_operation (date)
+numero_operation (integer or serial, per client)
+ouguiya (decimal, nullable): Amount of Ouguiya involved in the transaction (Sale/Purchase).
+payement_ouguiya (decimal, nullable): Payment or deposit in Ouguiya made by the client.
+fcfa (decimal, nullable): Corresponding amount in FCFA.
+payement_fcfa (decimal, nullable): Repayment or payment in FCFA made by the client. rate (decimal, calculated or entered, nullable): Calculated automatically (e.g., FCFA/Ouguiya or the inverse, depending on industry convention).
+solde_ouguiya_ligne (decimal): Cumulative Ouguiya balance after this transaction.
+solde_fcfa_ligne (decimal): Cumulative FCFA balance after this transaction.
+type_operation (enum: sale, repayment, deposit, etc.)
+created_at, updated_at
+C. User Table
+Do not forget the user table.
+
+3. Key Features & Business Logic
+
+User Account Management
+. If no user exists, prompt the guest to create an administrator account with a password.
+. The admin can create, delete, or modify users.
+2. Client Account Management
+List of clients, with their current balances in both Ouguiya and FCFA displayed directly.
+Detailed client profile showing the complete history in an interactive table (similar to the Excel tabs for ZABRE AMIDOU or Salam Kabore).
+Quick-add feature for new clients.
+3. Transaction Entry (Dynamic Form)
+Client selection.
+Input fields: Date, Ouguiya amount, Ouguiya payment, FCFA amount, FCFA payment, rate.
+Automation:
+Automatic rate calculation if both Ouguiya and FCFA amounts are provided.
+Real-time calculation of cumulative balances (Ouguiya and FCFA) based on the client's previous transactions.
+4. Dashboard (Global Dashboard)
+Overview of total cash flow (total Ouguiya in circulation/owed, total FCFA).
+Indicators for total gains realized from resales. Alerts for negative balances or significant outstanding debts.
+5. Advanced & Relevant Features (Proposed Additions)
+PDF Export / Printing: Generate a clean receipt or customer account statement (in ticket or A4 format) to send directly to the client (via WhatsApp or by printing).
+Advanced Search and Filters: Filter transactions by period (month, week), type, or client.
+Earnings (Profit) History: A dedicated module to track profits generated from fluctuations and the resale of Ouguiya.
+Security and Roles: Robust authentication (Laravel Breeze or Jetstream) to secure access to your financial data.
+Dark / Light Mode: Convenient for extended use in a shop environment.
+4. Technical Structure for the AI ​​Agent (Antigravity)
+
+Markdown
+Role: You are an expert senior Laravel developer.
+Task: Create a web application for managing currency exchange accounts (Ouguiya vs. FCFA) in French, designed to replace an Excel file.
+
+Development Instructions:
+1. Use Laravel 11 with Eloquent ORM.
+2. Create migrations for `clients` and `transactions` tables with the necessary fields (use `decimal` for amounts to avoid rounding errors; include foreign keys).
+3. Define models with appropriate relationships (a Client has many Transactions).
+4. Implement a Service or an Observer in Laravel to automatically calculate cumulative balances (Ouguiya and FCFA) whenever a transaction is added or modified for a specific client.
+5. Build a full CRUD system for clients, along with a dynamic interface for adding transaction entries.
+6. Use Livewire or Inertia.js (depending on the project stack) to ensure the account table is fluid and responsive, with automatic, real-time calculations for exchange rates and balances. 7. Add a dashboard summarizing overall balances and earnings.
